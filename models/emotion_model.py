@@ -114,4 +114,171 @@ class EmotionRecognizer:
                 mode='max',
                 save_best_only=True
             ),
-            keras.callbacks.CSV
+            keras.callbacks.CSVLogger('results/metrics/emotion_training_log.csv')
+        ]
+        
+        self.history = self.model.fit(
+            X_train, y_train,
+            validation_data=(X_val, y_val),
+            epochs=epochs,
+            batch_size=batch_size,
+            callbacks=callbacks,
+            class_weight=class_weight,
+            verbose=1
+        )
+        
+        return self.history.history
+    
+    def predict(self, images: np.ndarray) -> np.ndarray:
+        """Predict emotion probabilities for all classes
+        
+        Args:
+            images: Input images array
+            
+        Returns:
+            Probability array of shape (n, 7)
+        """
+        if self.model is None:
+            raise ValueError("Model not built or loaded")
+        
+        predictions = self.model.predict(images)
+        return predictions
+    
+    def predict_class(self, images: np.ndarray) -> np.ndarray:
+        """Predict emotion classes
+        
+        Args:
+            images: Input images array
+            
+        Returns:
+            Predicted class indices (0-6)
+        """
+        probabilities = self.predict(images)
+        return np.argmax(probabilities, axis=1)
+    
+    def predict_with_confidence(self, images: np.ndarray) -> List[Dict[str, Any]]:
+        """Predict emotions with confidence scores
+        
+        Args:
+            images: Input images
+            
+        Returns:
+            List of dictionaries with emotion and confidence
+        """
+        probabilities = self.predict(images)
+        predictions = []
+        
+        for probs in probabilities:
+            max_idx = np.argmax(probs)
+            predictions.append({
+                'emotion': self.EMOTIONS[max_idx],
+                'emotion_id': max_idx,
+                'confidence': float(probs[max_idx]),
+                'all_probabilities': {
+                    emotion: float(prob) for emotion, prob in zip(self.EMOTIONS, probs)
+                }
+            })
+        
+        return predictions
+    
+    def evaluate(self, X_test: np.ndarray, y_test: np.ndarray) -> Dict[str, Any]:
+        """Evaluate model performance
+        
+        Args:
+            X_test: Test images
+            y_test: True labels
+            
+        Returns:
+            Dictionary of metrics and reports
+        """
+        if self.model is None:
+            raise ValueError("Model not built or loaded")
+        
+        # Get predictions
+        y_pred_proba = self.predict(X_test)
+        y_pred = np.argmax(y_pred_proba, axis=1)
+        
+        # Calculate metrics
+        metrics = {
+            'accuracy': float(np.mean(y_pred == y_test)),
+            'classification_report': classification_report(
+                y_test, y_pred, 
+                target_names=self.EMOTIONS,
+                output_dict=True
+            ),
+            'confusion_matrix': confusion_matrix(y_test, y_pred).tolist()
+        }
+        
+        # Get model's evaluation
+        loss, accuracy = self.model.evaluate(X_test, y_test, verbose=0)
+        metrics['model_loss'] = loss
+        metrics['model_accuracy'] = accuracy
+        
+        return metrics
+    
+    def load_model(self, model_path: str):
+        """Load pre-trained model"""
+        self.model = keras.models.load_model(model_path)
+        print(f"✅ Model loaded from {model_path}")
+    
+    def get_emotion_color(self, emotion: str) -> str:
+        """Get color for emotion visualization"""
+        return self.EMOTION_COLORS.get(emotion, '#000000')
+    
+    def fine_tune(self, 
+                  X_train: np.ndarray,
+                  y_train: np.ndarray,
+                  X_val: np.ndarray,
+                  y_val: np.ndarray,
+                  epochs: int = 25,
+                  learning_rate: float = 1e-5):
+        """Fine-tune the model with unfrozen base layers"""
+        
+        # Unfreeze base model
+        for layer in self.model.layers[1].layers[:100]:  # EfficientNet is second layer
+            layer.trainable = True
+        
+        # Recompile with lower learning rate
+        self.model.compile(
+            optimizer=keras.optimizers.Adam(learning_rate=learning_rate),
+            loss='sparse_categorical_crossentropy',
+            metrics=['accuracy']
+        )
+        
+        # Continue training
+        history = self.model.fit(
+            X_train, y_train,
+            validation_data=(X_val, y_val),
+            epochs=epochs,
+            batch_size=32,
+            verbose=1
+        )
+        
+        return history.history
+
+# Custom loss function for emotion recognition
+class FocalLoss(keras.losses.Loss):
+    """Focal Loss for handling class imbalance"""
+    
+    def __init__(self, alpha=0.25, gamma=2.0, **kwargs):
+        super().__init__(**kwargs)
+        self.alpha = alpha
+        self.gamma = gamma
+    
+    def call(self, y_true, y_pred):
+        # Convert to one-hot if needed
+        if len(y_true.shape) == 1:
+            y_true = tf.one_hot(tf.cast(y_true, tf.int32), depth=7)
+        
+        # Calculate focal loss
+        cross_entropy = tf.keras.losses.categorical_crossentropy(y_true, y_pred)
+        probs = tf.reduce_sum(y_true * y_pred, axis=-1)
+        focal_loss = self.alpha * (1 - probs) ** self.gamma * cross_entropy
+        
+        return tf.reduce_mean(focal_loss)
+
+if __name__ == "__main__":
+    # Test the model
+    recognizer = EmotionRecognizer()
+    model = recognizer.build_model()
+    model.summary()
