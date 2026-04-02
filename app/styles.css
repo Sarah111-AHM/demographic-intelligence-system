@@ -1,1 +1,165 @@
+/* Custom CSS for Demographic Intelligence System */
 
+/* Main container */
+.stApp {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* Headers */
+h1, h2, h3 {
+    color: white !important;
+    font-weight: 600 !important;
+}
+
+/* Sidebar */
+.css-1d391kg {
+    background: rgba(255, 255, 255, 0.95) !important;
+    border-radius: 10px !important;
+}
+
+/* Cards */
+.stCard {
+    background: white !important;
+    border-radius: 10px !important;
+    padding: 20px !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Metrics */
+.stMetric {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    border-radius: 10px !important;
+    padding: 15px !important;
+    color: white !important;
+}
+
+/* Buttons */
+.stButton > button {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 5px !important;
+    padding: 10px 20px !important;
+    transition: transform 0.3s !important;
+}
+
+.stButton > button:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Progress bars */
+.stProgress > div > div {
+    background: linear-gradient(90deg, #667eea, #764ba2) !important;
+}
+
+/* Expanders */
+.streamlit-expanderHeader {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border-radius: 5px !important;
+}
+
+/* Tabs */
+.stTabs [data-baseweb="tab-list"] {
+    gap: 8px !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-radius: 10px !important;
+    padding: 5px !important;
+}
+
+.stTabs [data-baseweb="tab"] {
+    border-radius: 5px !important;
+    color: white !important;
+}
+
+.stTabs [aria-selected="true"] {
+    background: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Info boxes */
+.stAlert {
+    border-radius: 10px !important;
+}
+
+/* Success messages */
+.stSuccess {
+    background: rgba(40, 167, 69, 0.2) !important;
+    border-radius: 10px !important;
+}
+
+/* Warning messages */
+.stWarning {
+    background: rgba(255, 193, 7, 0.2) !important;
+    border-radius: 10px !important;
+}
+
+/* Error messages */
+.stError {
+    background: rgba(220, 53, 69, 0.2) !important;
+    border-radius: 10px !important;
+}
+
+/* Plotly charts */
+.js-plotly-plot {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border-radius: 10px !important;
+    padding: 10px !important;
+}
+
+/* Image container */
+.stImage {
+    border-radius: 10px !important;
+    overflow: hidden !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.stApp > div {
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .stMetric {
+        margin: 10px 0 !important;
+    }
+    
+    h1 {
+        font-size: 24px !important;
+    }
+    
+    .stButton > button {
+        width: 100% !important;
+    }
+}
